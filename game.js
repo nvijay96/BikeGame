@@ -127,84 +127,146 @@ class Game {
         this.ctx.rotate((lean * Math.PI) / 180);
         this.ctx.globalAlpha = alpha;
 
-        // Draw bike frame
-        this.ctx.strokeStyle = this.bike.color;
-        this.ctx.lineWidth = 3;
+        // Draw shadow under bike
+        this.ctx.restore();
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x + this.bike.width/2, y + this.bike.height - 5, 20, 6, 0, 0, Math.PI * 2);
+        this.ctx.fill();
         
-        // Main frame (triangle shape)
+        this.ctx.save();
+        this.ctx.translate(x + this.bike.width / 2, y + this.bike.height / 2);
+        this.ctx.rotate((lean * Math.PI) / 180);
+
+        // Chrome effect for metallic parts
+        const gradient = this.ctx.createLinearGradient(-20, -20, 20, 20);
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(0.5, '#a8a8a8');
+        gradient.addColorStop(1, '#ffffff');
+
+        // Main frame (more detailed)
+        this.ctx.strokeStyle = this.bike.color;
+        this.ctx.lineWidth = 4;
+        
+        // Main frame tube (now with gradient for metallic effect)
+        this.ctx.strokeStyle = gradient;
         this.ctx.beginPath();
         this.ctx.moveTo(-15, 10);  // Bottom
         this.ctx.lineTo(0, -20);   // Top
         this.ctx.lineTo(15, 10);   // Bottom right
-        this.ctx.closePath();
         this.ctx.stroke();
 
-        // Handlebars
+        // Additional frame detail
+        this.ctx.strokeStyle = this.bike.color;
         this.ctx.beginPath();
-        this.ctx.moveTo(-12, -15);
-        this.ctx.lineTo(12, -15);
+        this.ctx.moveTo(-8, 0);
+        this.ctx.lineTo(8, 0);
         this.ctx.stroke();
 
-        // Front fork
+        // Handlebars with chrome effect
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(-15, -15);
+        this.ctx.quadraticCurveTo(-12, -18, -8, -15);
+        this.ctx.moveTo(15, -15);
+        this.ctx.quadraticCurveTo(12, -18, 8, -15);
+        this.ctx.stroke();
+
+        // Front fork with suspension detail
+        this.ctx.strokeStyle = gradient;
         this.ctx.beginPath();
         this.ctx.moveTo(0, -15);
-        this.ctx.lineTo(0, 20);
+        this.ctx.lineTo(-2, -5);
+        this.ctx.lineTo(-2, 15);
+        this.ctx.moveTo(0, -15);
+        this.ctx.lineTo(2, -5);
+        this.ctx.lineTo(2, 15);
         this.ctx.stroke();
 
-        // Wheels (with spokes)
+        // Wheels with better details
         this.ctx.strokeStyle = '#2c3e50';
         this.ctx.lineWidth = 2;
+        
+        // Tires (black rubber effect)
+        this.ctx.fillStyle = '#1a1a1a';
         
         // Front wheel
         this.ctx.beginPath();
         this.ctx.arc(0, 20, 12, 0, Math.PI * 2);
-        // Add spokes
+        this.ctx.fill();
+        this.ctx.strokeStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 20, 10, 0, Math.PI * 2);
+        // Add chrome rim and spokes
         for (let i = 0; i < 8; i++) {
             const angle = (i * Math.PI) / 4;
             this.ctx.moveTo(0, 20);
             this.ctx.lineTo(
-                12 * Math.cos(angle),
-                20 + 12 * Math.sin(angle)
+                10 * Math.cos(angle),
+                20 + 10 * Math.sin(angle)
             );
         }
         this.ctx.stroke();
 
         // Back wheel
+        this.ctx.fillStyle = '#1a1a1a';
         this.ctx.beginPath();
         this.ctx.arc(0, -20, 12, 0, Math.PI * 2);
-        // Add spokes
+        this.ctx.fill();
+        this.ctx.strokeStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(0, -20, 10, 0, Math.PI * 2);
+        // Add chrome rim and spokes
         for (let i = 0; i < 8; i++) {
             const angle = (i * Math.PI) / 4;
             this.ctx.moveTo(0, -20);
             this.ctx.lineTo(
-                12 * Math.cos(angle),
-                -20 + 12 * Math.sin(angle)
+                10 * Math.cos(angle),
+                -20 + 10 * Math.sin(angle)
             );
         }
         this.ctx.stroke();
 
-        // Rider
+        // Rider with more detail
         this.ctx.fillStyle = '#34495e';
-        // Body (leaning with the bike)
+        // Body with slight lean into direction
+        this.ctx.save();
+        this.ctx.rotate((lean * Math.PI) / 360); // Rider leans half as much as bike
         this.ctx.fillRect(-6, -30, 12, 20);
-        // Head
+        
+        // Head with helmet
+        this.ctx.fillStyle = '#2c3e50';
         this.ctx.beginPath();
         this.ctx.arc(0, -35, 8, 0, Math.PI * 2);
         this.ctx.fill();
-        // Arms
+        // Helmet shine
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.beginPath();
+        this.ctx.arc(-2, -37, 4, 0, Math.PI);
+        this.ctx.stroke();
+        
+        // Arms with jacket detail
+        this.ctx.strokeStyle = '#2c3e50';
+        this.ctx.lineWidth = 4;
         this.ctx.beginPath();
         this.ctx.moveTo(-6, -25);
         this.ctx.lineTo(-15, -15);
         this.ctx.moveTo(6, -25);
         this.ctx.lineTo(15, -15);
         this.ctx.stroke();
-
-        // Add shadow under bike
+        
         this.ctx.restore();
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+
+        // Add reflection/shine to the frame
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.lineWidth = 1;
         this.ctx.beginPath();
-        this.ctx.ellipse(x + this.bike.width/2, y + this.bike.height - 5, 20, 6, 0, 0, Math.PI * 2);
-        this.ctx.fill();
+        this.ctx.moveTo(-12, 8);
+        this.ctx.lineTo(-2, -15);
+        this.ctx.stroke();
+
+        this.ctx.restore();
     }
 
     drawVehicle(vehicle) {
@@ -485,9 +547,9 @@ class Game {
 
     spawnVehicle() {
         const types = [
-            { width: 60, height: 100, type: 'car', color: '#3498db' },    // Made smaller
-            { width: 70, height: 120, type: 'bus', color: '#2ecc71' },    // Made smaller
-            { width: 65, height: 110, type: 'auto', color: '#f1c40f' }    // Made smaller
+            { width: 40, height: 80, type: 'car', color: '#3498db' },    // Made smaller
+            { width: 50, height: 100, type: 'bus', color: '#2ecc71' },   // Made smaller
+            { width: 45, height: 90, type: 'auto', color: '#f1c40f' }    // Made smaller
         ];
         
         const type = types[Math.floor(Math.random() * types.length)];
@@ -495,7 +557,7 @@ class Game {
         
         // Center the vehicle in the lane
         const vehicle = {
-            x: lane - type.width / 2,
+            x: lane - (type.width / 2),  // Properly center in lane
             y: -type.height,
             width: type.width,
             height: type.height,
@@ -618,10 +680,10 @@ class Game {
             }
         }
 
-        // Update difficulty settings based on level
+        // Update difficulty settings based on level - FIXED speed scaling
         Object.keys(this.difficultySettings).forEach(diff => {
-            this.difficultySettings[diff].vehicleSpeed = this.difficultySettings[diff].vehicleSpeed * (1 + this.level * 0.1);
-            this.difficultySettings[diff].spawnRate = Math.min(0.05, this.difficultySettings[diff].spawnRate * (1 + this.level * 0.05));
+            this.difficultySettings[diff].vehicleSpeed = (2 + this.level * 0.5) * (diff === 'easy' ? 1 : diff === 'medium' ? 1.3 : 1.6);
+            this.difficultySettings[diff].spawnRate = Math.min(0.05, 0.01 + (this.level * 0.003));
         });
 
         // Update road animation
