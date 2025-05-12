@@ -10,7 +10,6 @@ class Game {
         
         // Game state
         this.score = 0;
-        this.lives = 3;
         this.distance = 0;
         this.level = 1;
         this.gameOver = false;
@@ -24,9 +23,10 @@ class Game {
         this.roadWidth = 500;
         this.roadLeft = (800 - this.roadWidth) / 2;
         this.lanes = [
-            this.roadLeft + this.roadWidth * 0.25,   // Left lane
-            this.roadLeft + this.roadWidth * 0.5,    // Middle lane
-            this.roadLeft + this.roadWidth * 0.75    // Right lane
+            this.roadLeft + this.roadWidth * 0.125,  // New leftmost lane
+            this.roadLeft + this.roadWidth * 0.375,  // Adjusted second lane
+            this.roadLeft + this.roadWidth * 0.625,  // Adjusted third lane
+            this.roadLeft + this.roadWidth * 0.875   // New rightmost lane
         ];
         
         // Player bike
@@ -34,7 +34,7 @@ class Game {
         
         // Game objects
         this.vehicles = [];
-        this.pedestrians = [];
+        this.zombies = [];
         this.powerUps = [];
         
         // Initialize game objects array
@@ -53,7 +53,7 @@ class Game {
         this.difficultySettings = {
             easy: { 
                 vehicleSpeed: 2 + (this.level * 0.2),
-                spawnRate: 0.01 + (this.level * 0.002),
+                spawnRate: 0.005 + (this.level * 0.001), // Reduced spawn rate for easy mode
                 powerUpRate: 0.01
             },
             medium: { 
@@ -399,16 +399,16 @@ class Game {
         this.ctx.fill();
     }
 
-    drawPedestrian(pedestrian) {
+    drawZombie(zombie) {
         this.ctx.save();
-        
+
         // Draw shadow
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         this.ctx.beginPath();
         this.ctx.ellipse(
-            pedestrian.x + pedestrian.width/2,
-            pedestrian.y + pedestrian.height - 5,
-            pedestrian.width/2,
+            zombie.x + zombie.width / 2,
+            zombie.y + zombie.height - 5,
+            zombie.width / 2,
             8,
             0,
             0,
@@ -417,37 +417,44 @@ class Game {
         this.ctx.fill();
 
         // Only add walking animation if not hit
-        const walkCycle = pedestrian.isHit ? 0 : Math.sin(Date.now() / 200) * 2;
-        this.ctx.translate(pedestrian.x, pedestrian.y + walkCycle);
+        const walkCycle = zombie.isHit ? 0 : Math.sin(Date.now() / 200) * 2;
+        this.ctx.translate(zombie.x, zombie.y + walkCycle);
 
         // Draw differently if hit
-        if (pedestrian.isHit) {
+        if (zombie.isHit) {
             // Draw lying down
             this.ctx.rotate(Math.PI / 2);
-            this.ctx.translate(-pedestrian.height/2, -pedestrian.width/2);
+            this.ctx.translate(-zombie.height / 2, -zombie.width / 2);
         }
 
         // Body
-        this.ctx.fillStyle = pedestrian.color;
-        this.ctx.fillRect(0, pedestrian.height * 0.3, pedestrian.width, pedestrian.height * 0.4);
+        this.ctx.fillStyle = zombie.color;
+        this.ctx.fillRect(0, zombie.height * 0.3, zombie.width, zombie.height * 0.4);
 
         // Head
         this.ctx.beginPath();
-        this.ctx.arc(pedestrian.width/2, pedestrian.height * 0.2, pedestrian.width/2, 0, Math.PI * 2);
+        this.ctx.arc(zombie.width / 2, zombie.height * 0.2, zombie.width / 2, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Glowing eyes
+        this.ctx.fillStyle = zombie.glowColor;
+        this.ctx.beginPath();
+        this.ctx.arc(zombie.width * 0.35, zombie.height * 0.15, 2, 0, Math.PI * 2);
+        this.ctx.arc(zombie.width * 0.65, zombie.height * 0.15, 2, 0, Math.PI * 2);
         this.ctx.fill();
 
         // Only draw legs animation if not hit
-        if (!pedestrian.isHit) {
+        if (!zombie.isHit) {
             this.ctx.beginPath();
-            this.ctx.moveTo(pedestrian.width * 0.3, pedestrian.height * 0.7);
-            this.ctx.lineTo(pedestrian.width * 0.3, pedestrian.height * (0.7 + Math.sin(Date.now() / 200) * 0.1));
-            this.ctx.moveTo(pedestrian.width * 0.7, pedestrian.height * 0.7);
-            this.ctx.lineTo(pedestrian.width * 0.7, pedestrian.height * (0.7 - Math.sin(Date.now() / 200) * 0.1));
-            this.ctx.strokeStyle = pedestrian.color;
+            this.ctx.moveTo(zombie.width * 0.3, zombie.height * 0.7);
+            this.ctx.lineTo(zombie.width * 0.3, zombie.height * (0.7 + Math.sin(Date.now() / 200) * 0.1));
+            this.ctx.moveTo(zombie.width * 0.7, zombie.height * 0.7);
+            this.ctx.lineTo(zombie.width * 0.7, zombie.height * (0.7 - Math.sin(Date.now() / 200) * 0.1));
+            this.ctx.strokeStyle = zombie.color;
             this.ctx.lineWidth = 3;
             this.ctx.stroke();
         }
-        
+
         this.ctx.restore();
     }
 
@@ -497,8 +504,8 @@ class Game {
                     case 'vehicle':
                         this.drawVehicle(obj.object);
                         break;
-                    case 'pedestrian':
-                        this.drawPedestrian(obj.object);
+                    case 'zombie':
+                        this.drawZombie(obj.object);
                         break;
                     case 'powerup':
                         this.drawPowerUp(obj.object);
@@ -547,23 +554,22 @@ class Game {
 
     spawnVehicle() {
         const types = [
-            { width: 40, height: 80, type: 'car', color: '#3498db' },    // Made smaller
-            { width: 50, height: 100, type: 'bus', color: '#2ecc71' },   // Made smaller
-            { width: 45, height: 90, type: 'auto', color: '#f1c40f' }    // Made smaller
+            { width: 60, height: 80, type: 'car', color: '#3498db' }, // Further increased car width
+            { width: 70, height: 100, type: 'bus', color: '#2ecc71' }, // Further increased bus width
+            { width: 65, height: 90, type: 'auto', color: '#f1c40f' }  // Further increased auto width
         ];
         
         const type = types[Math.floor(Math.random() * types.length)];
         const lane = this.lanes[Math.floor(Math.random() * this.lanes.length)];
         
-        // Center the vehicle in the lane
         const vehicle = {
-            x: lane - (type.width / 2),  // Properly center in lane
+            x: lane - (type.width / 2),
             y: -type.height,
             width: type.width,
             height: type.height,
             type: type.type,
             color: type.color,
-            speed: this.difficultySettings[this.difficulty].vehicleSpeed
+            speed: this.difficultySettings[this.difficulty].vehicleSpeed * 0.9 // Reduced speed by 10%
         };
         
         this.vehicles.push(vehicle);
@@ -577,7 +583,7 @@ class Game {
         
         const type = types[Math.floor(Math.random() * types.length)];
         const powerUp = {
-            x: Math.random() * (this.canvas.width - 30),
+            x: Math.random() * (this.roadWidth - 30) + this.roadLeft, // Ensure power-ups spawn within the road
             y: -30,
             width: 30,
             height: 30,
@@ -589,49 +595,57 @@ class Game {
         this.powerUps.push(powerUp);
     }
 
-    spawnPedestrian() {
+    spawnZombie() {
         const side = Math.random() > 0.5;
-        const pedestrian = {
+        const zombie = {
             x: side ? this.roadLeft : this.roadLeft + this.roadWidth, // Spawn from road edges
             y: Math.random() * (this.canvas.height - 100) + 50,
             width: 20,
             height: 40,
-            color: '#e67e22',
+            color: '#000000', // Changed zombie color to black
             speed: (Math.random() * 1 + 0.5) * (side ? 1 : -1),
-            isHit: false  // Track if pedestrian is hit
+            isHit: false,  // Track if zombie is hit
+            glowColor: '#ff0000' // Added glowing eyes effect
         };
-        this.pedestrians.push(pedestrian);
+        this.zombies.push(zombie);
     }
 
-    updatePedestrians() {
-        for(let i = this.pedestrians.length - 1; i >= 0; i--) {
-            const pedestrian = this.pedestrians[i];
-            
+    updateZombies() {
+        for (let i = this.zombies.length - 1; i >= 0; i--) {
+            const zombie = this.zombies[i];
+
             // Skip movement if hit by vehicle
-            if (!pedestrian.isHit) {
-                pedestrian.x += pedestrian.speed;
-            }
-            
-            // Check for collisions with vehicles
-            for (const vehicle of this.vehicles) {
-                if (!pedestrian.isHit && this.checkCollision(pedestrian, vehicle)) {
-                    pedestrian.isHit = true;
-                    pedestrian.color = '#7f8c8d'; // Change color when hit
-                    pedestrian.speed = vehicle.speed; // Match vehicle speed
-                    pedestrian.y += vehicle.speed; // Move with vehicle
-                    this.score += 5; // Bonus points for vehicle hitting pedestrian
+            if (!zombie.isHit) {
+                zombie.x += zombie.speed;
+                // Add zigzagging behavior
+                if (Math.random() < 0.05) {
+                    zombie.y += Math.random() > 0.5 ? 5 : -5;
                 }
             }
-            
-            // Remove pedestrian if off screen
-            if (pedestrian.x < -50 || pedestrian.x > this.canvas.width + 50 ||
-                pedestrian.y > this.canvas.height) {
-                this.pedestrians.splice(i, 1);
+
+            // Check for collisions with vehicles
+            for (const vehicle of this.vehicles) {
+                if (!zombie.isHit && this.checkCollision(zombie, vehicle)) {
+                    zombie.isHit = true;
+                    zombie.color = '#7f8c8d'; // Change color when hit
+                    zombie.speed = vehicle.speed; // Match vehicle speed
+                    zombie.y += vehicle.speed; // Move with vehicle
+                    this.score += 5; // Bonus points for vehicle hitting zombie
+                }
+            }
+
+            // Remove zombie if off screen
+            if (
+                zombie.x < -50 ||
+                zombie.x > this.canvas.width + 50 ||
+                zombie.y > this.canvas.height
+            ) {
+                this.zombies.splice(i, 1);
                 continue;
             }
-            
+
             // Check for collision with bike
-            if (!pedestrian.isHit && this.checkCollision(this.bike, pedestrian)) {
+            if (!zombie.isHit && this.checkCollision(this.bike, zombie)) {
                 this.handleCollision();
             }
         }
@@ -688,7 +702,7 @@ class Game {
 
         // Update road animation
         this.roadOffset = (this.roadOffset + this.roadSpeed) % 40;
-        
+
         // Physics-based movement
         if (this.keys.left) {
             this.bike.velocity.x -= this.bike.acceleration;
@@ -749,7 +763,7 @@ class Game {
         }
         
         if (Math.random() < 0.01) {
-            this.spawnPedestrian();
+            this.spawnZombie();
         }
         
         if (Math.random() < this.difficultySettings[this.difficulty].powerUpRate) {
@@ -758,18 +772,20 @@ class Game {
 
         // Update all game objects
         this.updateVehicles();
-        this.updatePedestrians();
+        this.updateZombies();
         this.updatePowerUps();
 
         // Update game progress
         this.distance += this.speed / 10;
         this.checkLevelUp();
+
+        // Ensure HUD is updated every frame
         this.updateHUD();
 
         // Sort objects by y position for proper layering
         this.gameObjects = [
             ...this.vehicles.map(v => ({ type: 'vehicle', object: v })),
-            ...this.pedestrians.map(p => ({ type: 'pedestrian', object: p })),
+            ...this.zombies.map(z => ({ type: 'zombie', object: z })),
             ...this.powerUps.map(p => ({ type: 'powerup', object: p }))
         ].sort((a, b) => 
             (a.object.y + a.object.height) - (b.object.y + b.object.height)
@@ -792,7 +808,6 @@ class Game {
 
     handleCollision() {
         if (!this.isInvincible) {
-            this.lives--;
             this.scoreMultiplier = 1;
             this.multiplierTimer = 0;
             document.getElementById('game-container').classList.add('collision');
@@ -800,13 +815,11 @@ class Game {
                 document.getElementById('game-container').classList.remove('collision');
             }, 500);
 
-            if (this.lives <= 0) {
-                this.gameOver = true;
-                document.getElementById('gameOverScreen').classList.remove('hidden');
-                document.getElementById('finalScore').textContent = `Score: ${this.score}`;
-                document.getElementById('finalDistance').textContent = `Distance: ${Math.floor(this.distance)}m`;
-                document.getElementById('finalLevel').textContent = `Level: ${this.level}`;
-            }
+            this.gameOver = true;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = `Score: ${this.score}`;
+            document.getElementById('finalDistance').textContent = `Distance: ${Math.floor(this.distance)}m`;
+            document.getElementById('finalLevel').textContent = `Level: ${this.level}`;
         }
     }
 
@@ -818,19 +831,27 @@ class Game {
     }
 
     updateHUD() {
-        document.getElementById('scoreValue').textContent = this.score;
-        document.getElementById('levelValue').textContent = this.level;
-        document.getElementById('distanceValue').textContent = Math.floor(this.distance);
-        document.getElementById('multiplierValue').textContent = `x${this.scoreMultiplier.toFixed(1)}`;
-        // Add visual feedback for multiplier
-        const multiplierEl = document.getElementById('multiplierValue');
-        multiplierEl.className = this.scoreMultiplier > 1 ? 'active' : '';
-        this.updateLives();
-    }
+        // Update HUD elements if they exist
+        const scoreElement = document.getElementById('scoreValue');
+        if (scoreElement) {
+            scoreElement.textContent = this.score;
+        }
 
-    updateLives() {
-        const livesContainer = document.getElementById('livesContainer');
-        livesContainer.innerHTML = '❤️'.repeat(this.lives);
+        const levelElement = document.getElementById('levelValue');
+        if (levelElement) {
+            levelElement.textContent = this.level;
+        }
+
+        const distanceElement = document.getElementById('distanceValue');
+        if (distanceElement) {
+            distanceElement.textContent = Math.floor(this.distance);
+        }
+
+        const multiplierElement = document.getElementById('multiplierValue');
+        if (multiplierElement) {
+            multiplierElement.textContent = `x${this.scoreMultiplier.toFixed(1)}`;
+            multiplierElement.className = this.scoreMultiplier > 1 ? 'active' : '';
+        }
     }
 
     drawRoad() {
@@ -939,16 +960,15 @@ class Game {
             switch (this.powerUp.type) {
                 case 'invincibility':
                     this.isInvincible = true;
-                    setTimeout(() => { this.isInvincible = false; }, 5000);
+                    setTimeout(() => {
+                        this.isInvincible = false;
+                    }, 3000); // 3 seconds of invincibility
                     break;
                 case 'slowMotion':
-                    this.vehicles.forEach(v => v.speed *= 0.5);
-                    setTimeout(() => {
-                        this.vehicles.forEach(v => v.speed *= 2);
-                    }, 5000);
+                    // ...existing code for slow motion...
                     break;
             }
-            this.powerUp = null;
+            this.powerUp = null; // Clear the power-up after activation
         }
     }
 
@@ -961,17 +981,21 @@ class Game {
         this.gameStarted = true;
         this.gameOver = false;
         this.score = 0;
-        this.lives = 3;
         this.distance = 0;
         this.level = 1;
         this.vehicles = [];
-        this.pedestrians = [];
+        this.zombies = [];
         this.powerUps = [];
-        this.updateLives();
-        
+
+        // Remove initial 0 score from the DOM
+        const scoreElement = document.getElementById('scoreValue');
+        if (scoreElement) {
+            scoreElement.textContent = '';
+        }
+
         document.getElementById('menuScreen').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.add('hidden');
-        
+
         // Reset game loop timing
         this.lastTime = 0;
         requestAnimationFrame(this.gameLoop);
@@ -1024,7 +1048,7 @@ window.onload = function() {
     const menuScreen = document.createElement('div');
     menuScreen.id = 'menuScreen';
     menuScreen.innerHTML = `
-        <h1>Zombie Ride</h1>
+        <h1>Dead Lane</h1>
         <div class="difficulty-selection">
             <button class="difficulty-btn selected" data-difficulty="easy">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium">Medium</button>
@@ -1046,17 +1070,18 @@ window.onload = function() {
     `;
     document.getElementById('game-container').appendChild(gameOverScreen);
 
-    // Create HUD elements
-    const hud = document.createElement('div');
-    hud.id = 'hud';
-    hud.innerHTML = `
-        <div id="score">Score: <span id="scoreValue">0</span></div>
-        <div id="level">Level: <span id="levelValue">1</span></div>
-        <div id="distance">Distance: <span id="distanceValue">0</span>m</div>
-        <div id="multiplier">Multiplier: <span id="multiplierValue">x1.0</span></div>
-        <div id="livesContainer"></div>
-    `;
-    document.getElementById('game-container').appendChild(hud);
+    // Ensure only one HUD is created
+    if (!document.getElementById('hud')) {
+        const hud = document.createElement('div');
+        hud.id = 'hud';
+        hud.innerHTML = `
+            <div id="score">Score: <span id="scoreValue"></span></div>
+            <div id="level">Level: <span id="levelValue">1</span></div>
+            <div id="distance">Distance: <span id="distanceValue"></span>m</div>
+            <div id="multiplier">Multiplier: <span id="multiplierValue"></span></div>
+        `;
+        document.getElementById('game-container').appendChild(hud);
+    }
 
     const levelUpScreen = document.createElement('div');
     levelUpScreen.id = 'levelUpScreen';

@@ -82,11 +82,30 @@ body {
 #hud {
     position: absolute;
     top: 10px;
-    left: 120px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
     color: white;
     font-family: Arial, sans-serif;
+    z-index: 10;
+}
+
+#hud div {
     display: flex;
-    gap: 20px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+}
+
+#hud span {
+    font-weight: bold;
+    font-size: 14px;
 }
 
 #boost-meter {
