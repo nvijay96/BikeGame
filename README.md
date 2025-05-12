@@ -29,6 +29,7 @@ The game features a modern racing theme with vibrant visuals and smooth animatio
 - The game currently lacks sound effects.
 - Limited obstacle variety.
 - Powerups dont work as expected.
+- This is developed for Browsers in PC/Laptop, We cannot play it in mobile.
 
 ## AI Models Used
 - Claude 3.5 sonnet
