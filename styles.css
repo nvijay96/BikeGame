@@ -109,6 +109,7 @@ body {
 #livesContainer {
     display: flex;
     gap: 5px;
+    display: none;
 }
 
 .life-icon {

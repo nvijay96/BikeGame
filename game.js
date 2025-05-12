@@ -24,9 +24,9 @@ class Game {
         this.roadWidth = 500;
         this.roadLeft = (800 - this.roadWidth) / 2;
         this.lanes = [
-            this.roadLeft + this.roadWidth * 0.2,   // Left lane
-            this.roadLeft + this.roadWidth * 0.5,   // Middle lane
-            this.roadLeft + this.roadWidth * 0.8    // Right lane
+            this.roadLeft + this.roadWidth * 0.25,   // Left lane
+            this.roadLeft + this.roadWidth * 0.5,    // Middle lane
+            this.roadLeft + this.roadWidth * 0.75    // Right lane
         ];
         
         // Player bike
@@ -1024,7 +1024,7 @@ window.onload = function() {
     const menuScreen = document.createElement('div');
     menuScreen.id = 'menuScreen';
     menuScreen.innerHTML = `
-        <h1>Bike Game</h1>
+        <h1>Zombie Ride</h1>
         <div class="difficulty-selection">
             <button class="difficulty-btn selected" data-difficulty="easy">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium">Medium</button>
