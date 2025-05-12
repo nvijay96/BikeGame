@@ -20,9 +20,19 @@ The game features a modern racing theme with vibrant visuals and smooth animatio
 - **HTML5**: For structuring the game interface.
 - **CSS3**: For styling and animations.
 - **JavaScript**: For game logic and interactivity.
+- Vercel: Hosting
+- Visual Studio Code
+- GIT
 
 ## Known Limitations
 - The game currently lacks sound effects.
 - Limited obstacle variety.
+- Powerups dont work as expected.
+
+## AI Models Used
+- Claude 3.5 sonnet
+- ChatGPT
+- GitHub Copilot
+
 
 Enjoy the game and challenge your reflexes!
