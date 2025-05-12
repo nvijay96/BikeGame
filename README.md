@@ -1,4 +1,5 @@
 # Dead Lane
+Title - Dead Lane
 
 ## Description
 Dead Lane is an exciting lane-based racing game where players control a bike to avoid obstacles and score points. The game is designed to test reflexes and provide an engaging experience.
@@ -34,5 +35,10 @@ The game features a modern racing theme with vibrant visuals and smooth animatio
 - ChatGPT
 - GitHub Copilot
 
+## Game URL
+- https://dead-lane.vercel.app/
+
+## Google Drive Link
+- https://drive.google.com/file/d/16i9aR9pBWSI8eNLBw7ancVJ5pLj_kfLY/view?usp=sharing
 
 Enjoy the game and challenge your reflexes!
